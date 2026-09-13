@@ -57,7 +57,11 @@ namespace OneCCacheCleaner
         {
             var attributes = File.GetAttributes(path);
             string name = Path.GetFileName(path);
-            bool protectedItem = name.Equals("1CEStart", StringComparison.OrdinalIgnoreCase) || name.Equals("licensing", StringComparison.OrdinalIgnoreCase);
+            // 1C stores per-user software licenses in the platform conf directory
+            // and shared licenses in a directory named licenses.
+            bool protectedItem = name.Equals("1CEStart", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("conf", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("licenses", StringComparison.OrdinalIgnoreCase);
             if ((attributes & FileAttributes.Directory) == 0)
             {
                 string extension = Path.GetExtension(path);

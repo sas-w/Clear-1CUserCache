@@ -31,9 +31,10 @@ try {
             $vrs = Join-Path $cache (([guid]::NewGuid().ToString()) + '/vrs-cache')
             [void][IO.Directory]::CreateDirectory($vrs)
             [IO.File]::WriteAllText((Join-Path $vrs 'cache.1CD'), 'cache, not an information base')
-            foreach ($keep in @('1CEStart', 'licensing', 'tmplts', 'not-a-guid')) {
+            foreach ($keep in @('1CEStart', 'conf', 'licenses', 'tmplts', 'not-a-guid')) {
                 [void][IO.Directory]::CreateDirectory((Join-Path $root $keep))
-                [IO.File]::WriteAllText((Join-Path $root "$keep/keep.txt"), 'preserve')
+                $keepFile = if ($keep -in @('conf', 'licenses')) { '20260914000101.lic' } else { 'keep.txt' }
+                [IO.File]::WriteAllText((Join-Path $root "$keep/$keepFile"), 'preserve')
             }
         }
     }
@@ -42,11 +43,12 @@ try {
     foreach ($cache in $candidates) { Assert-CleanableTree $cache; Remove-CacheTree $cache }
     Assert (@(Get-CacheCandidates $roots).Count -eq 0) 'Cache was not removed.'
     foreach ($root in $roots) {
-        foreach ($keep in @('1CEStart', 'licensing', 'tmplts', 'not-a-guid')) {
-            Assert (Test-Path -LiteralPath (Join-Path $root "$keep/keep.txt")) "Protected folder lost: $keep"
+        foreach ($keep in @('1CEStart', 'conf', 'licenses', 'tmplts', 'not-a-guid')) {
+            $keepFile = if ($keep -in @('conf', 'licenses')) { '20260914000101.lic' } else { 'keep.txt' }
+            Assert (Test-Path -LiteralPath (Join-Path $root "$keep/$keepFile")) "Protected folder lost: $keep"
         }
     }
-    foreach ($protected in @('licensing/license.txt', '1CEStart/ibases.v8i', 'data.1CD', 'license.lic', 'cache.1CD', 'Config/cache.1CD', 'vrs-cache/1Cv8.1CD', 'vrs-cache/license.lic')) {
+    foreach ($protected in @('conf/license.txt', 'licenses/license.txt', '1CEStart/ibases.v8i', 'data.1CD', 'license.lic', 'LICENSE.LIC', 'nested/license.lic', 'cache.1CD', 'Config/cache.1CD', 'vrs-cache/1Cv8.1CD', 'vrs-cache/license.lic')) {
         $cache = Join-Path $roots[0] ([guid]::NewGuid().ToString())
         $file = Join-Path $cache $protected
         [void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($file))
@@ -70,7 +72,7 @@ try {
     Assert-Throws { Remove-CacheTree $link } 'Deletion accepted a link.'
     Assert (Test-Path -LiteralPath (Join-Path $outside 'keep.txt')) 'Link target lost.'
     Remove-Item -LiteralPath $link -Force
-    Write-Host 'PASS: syntax, four roots, GUID selection, vrs-cache/cache.1CD deletion, exclusions, license/database protection, links.'
+    Write-Host 'PASS: syntax, four roots, GUID selection, vrs-cache/cache.1CD deletion, conf/licenses/.lic protection, exclusions, database protection, links.'
 } finally {
     if (Test-Path -LiteralPath $sandbox) { Remove-Item -LiteralPath $sandbox -Recurse -Force }
 }

@@ -45,7 +45,7 @@ function Get-CacheCandidates([string[]]$Roots) {
 }
 
 function Test-ProtectedCacheItem($Item) {
-    if ($Item.Name -in @('1CEStart', 'licensing')) { return $true }
+    if ($Item.Name -in @('1CEStart', 'conf', 'licenses')) { return $true }
     if ($Item.PSIsContainer) { return $false }
     if ($Item.Extension -eq '.lic') { return $true }
     if ($Item.Extension -eq '.1cd') {
@@ -131,7 +131,7 @@ function Invoke-CacheCleanup {
         return 0
     }
     Write-Host ($candidates -join "`r`n")
-    $question = "Пользователь: $($identity.Name)`r`nНайдено каталогов кэша: $($candidates.Count).`r`n`r`n" + ($roots -join "`r`n") + "`r`n`r`nБудут удалены только вложенные каталоги с GUID-именами.`r`n1CEStart и licensing сохраняются.`r`nНе открывайте 1С до завершения очистки.`r`nПервый запуск после очистки может занять больше времени.`r`n`r`nОчистить кэш?"
+    $question = "Пользователь: $($identity.Name)`r`nНайдено каталогов кэша: $($candidates.Count).`r`n`r`n" + ($roots -join "`r`n") + "`r`n`r`nБудут удалены только вложенные каталоги с GUID-именами.`r`n1CEStart, conf, licenses и файлы .lic сохраняются.`r`nНе открывайте 1С до завершения очистки.`r`nПервый запуск после очистки может занять больше времени.`r`n`r`nОчистить кэш?"
     if ([Windows.Forms.MessageBox]::Show($question, 'Очистка кэша 1С', 'YesNo', 'Question', 'Button2') -ne 'Yes') { return 0 }
     if (-not (Wait-ForClosed1C)) { return 0 }
     $deleted = 0

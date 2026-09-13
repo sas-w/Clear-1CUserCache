@@ -29,17 +29,18 @@ public static class EngineTests
                 string readOnly = Path.Combine(cache, "Config", "readonly.bin");
                 Put(readOnly);
                 File.SetAttributes(readOnly, FileAttributes.ReadOnly);
-                foreach (string keep in new[] { "1CEStart", "licensing", "tmplts", "not-a-guid" }) Put(Path.Combine(root, keep, "keep.txt"));
+                foreach (string keep in new[] { "1CEStart", "conf", "licenses", "tmplts", "not-a-guid" })
+                    Put(Path.Combine(root, keep, keep == "conf" || keep == "licenses" ? "20260914000101.lic" : "keep.txt"));
             }
             var candidates = CacheEngine.FindCandidates(roots);
             Check(candidates.Count == 4, "Four cache roots");
             var result = CacheEngine.Clean(roots, candidates, Empty, Ignore, Progress, CancellationToken.None);
             Check(result.Deleted == 4 && result.Failed == 0, "Cache + vrs-cache + readonly deletion");
             foreach (string root in roots)
-            foreach (string keep in new[] { "1CEStart", "licensing", "tmplts", "not-a-guid" })
-                Check(File.Exists(Path.Combine(root, keep, "keep.txt")), "Preserve " + keep);
+            foreach (string keep in new[] { "1CEStart", "conf", "licenses", "tmplts", "not-a-guid" })
+                Check(File.Exists(Path.Combine(root, keep, keep == "conf" || keep == "licenses" ? "20260914000101.lic" : "keep.txt")), "Preserve " + keep);
 
-            foreach (string protectedPath in new[] { "licensing/license.txt", "1CEStart/ibases.v8i", "data.1CD", "license.lic", "cache.1CD", "Config/cache.1CD", "vrs-cache/1Cv8.1CD" })
+            foreach (string protectedPath in new[] { "conf/license.txt", "licenses/license.txt", "1CEStart/ibases.v8i", "data.1CD", "license.lic", "LICENSE.LIC", "nested/license.lic", "cache.1CD", "Config/cache.1CD", "vrs-cache/1Cv8.1CD" })
             {
                 string cache = NewCache(roots[0]);
                 string file = Path.Combine(cache, protectedPath);
@@ -73,7 +74,7 @@ public static class EngineTests
             Put(outside);
             result = CacheEngine.Clean(roots, new[] { Path.GetDirectoryName(outside) }, Empty, Ignore, Progress, CancellationToken.None);
             Check(result.Failed == 1 && File.Exists(outside), "Reject arbitrary deletion target");
-            return "PASS: four roots, exclusions, vrs-cache, readonly files, preflight, running clients, WMI failure, process recheck, cancellation, target restriction.";
+            return "PASS: four roots, conf/licenses/.lic protection, exclusions, vrs-cache, readonly files, preflight, running clients, WMI failure, process recheck, cancellation, target restriction.";
         }
         finally { Directory.Delete(sandbox, true); }
     }
